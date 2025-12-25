@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Telemedicine Video Call</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: #fff;
+      text-align: center;
+    }
+    video {
+      width: 45%;
+      margin: 10px;
+      border-radius: 10px;
+      background: black;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Telemedicine Video Call</h2>
+
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
+
+  <br />
+  <button onclick="startCall()">Start Call</button>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const token = prompt("Enter JWT token");
+    const roomId = prompt("Enter Room ID");
+
+    const socket = io("http://localhost:5000", {
+      auth: { token }
+    });
+
+    let localStream;
+    let peerConnection;
+
+    const config = {
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    };
+
+    socket.on("connect", () => {
+      socket.emit("join-room", { roomId });
+    });
+
+    socket.on("signal", async (data) => {
+      if (data.type === "offer") {
+        await peerConnection.setRemoteDescription(data);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        socket.emit("signal", { roomId, data: answer });
+      }
+
+      if (data.type === "answer") {
+        await peerConnection.setRemoteDescription(data);
+      }
+
+      if (data.candidate) {
+        await peerConnection.addIceCandidate(data);
+      }
+    });
+
+    async function startCall() {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      document.getElementById("localVideo").srcObject = localStream;
+
+      peerConnection = new RTCPeerConnection(config);
+
+      localStream.getTracks().forEach(track =>
+        peerConnection.addTrack(track, localStream)
+      );
+
+      peerConnection.ontrack = (event) => {
+        document.getElementById("remoteVideo").srcObject = event.streams[0];
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("signal", {
+            roomId,
+            data: event.candidate
+          });
+        }
+      };
+
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      socket.emit("signal", {
+        roomId,
+        data: offer
+      });
+    }
+  </script>
+</body>
+</html>
