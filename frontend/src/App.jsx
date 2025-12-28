@@ -6,6 +6,9 @@ import Register from "./auth/Register";
 import PatientDashboard from "./patient/PatientDashboard";
 import DoctorDashboard from "./doctor/DoctorDashboard";
 import AdminDashboard from "./admin/AdminDashboard";
+import Users from "./admin/Users";
+import Doctors from "./admin/Doctors";
+import Consultations from "./admin/Consultations";
 
 import Navbar from "./common/Navbar";
 import ProtectedRoute from "./common/ProtectedRoute";
@@ -46,6 +49,30 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/doctors"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Doctors />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/consultations"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Consultations />
             </ProtectedRoute>
           }
         />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api/api";
 
 export default function Login() {
@@ -62,6 +62,12 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        <div className="text-right">
+          <Link to="/register" className="text-sm text-blue-600 hover:underline">
+            Don't have an account? Sign up
+          </Link>
+        </div>
 
         <button
           className="w-full bg-blue-600 text-white p-2 rounded"
